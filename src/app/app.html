@@ -1,0 +1,98 @@
+<main class="archive-container">
+  <header class="header">
+    <div class="brand-mark" aria-hidden="true">U</div>
+    <p class="eyebrow">Umbrella Corporation · Raccoon City</p>
+    <h1>Archivo de bioamenazas</h1>
+    <p class="subtitle">Registro de agentes, supervivientes y amenazas biológicas.</p>
+    <label class="search-box">
+      <span class="sr-only">Buscar personajes por nombre o número de expediente</span>
+      <span class="search-icon" aria-hidden="true">⌕</span>
+      <input
+        type="search"
+        placeholder="Buscar personaje o expediente..."
+        [ngModel]="searchTerm()"
+        (ngModelChange)="searchTerm.set($event)"
+      />
+      <span class="search-hint">{{ filteredCharacters().length }} ARCHIVOS</span>
+    </label>
+  </header>
+
+  @if (isLoading()) {
+    <section class="loading" aria-live="polite">
+      <div class="alert-loader" aria-hidden="true"></div>
+      <p>Accediendo al archivo central...</p>
+      <span>Recuperando expedientes de personajes</span>
+    </section>
+  } @else if (errorMessage()) {
+    <section class="empty-state" role="alert">
+      <span class="empty-icon" aria-hidden="true">!</span>
+      <h2>Algo salió mal</h2>
+      <p>{{ errorMessage() }}</p>
+      <button class="retry-button" (click)="loadCharacters()">Intentar de nuevo</button>
+    </section>
+  } @else if (filteredCharacters().length === 0) {
+    <section class="empty-state">
+      <span class="empty-icon" aria-hidden="true">?</span>
+      <h2>Expediente no localizado</h2>
+      <p>Prueba con otro nombre o número de registro.</p>
+    </section>
+  } @else {
+    <section class="character-grid" aria-label="Expedientes de personajes de Resident Evil">
+      @for (character of filteredCharacters(); track character.id) {
+        <button
+          class="card"
+          type="button"
+          (click)="openModal(character)"
+          [attr.aria-label]="'Abrir expediente de ' + character.name"
+        >
+          <span class="card-id">EXP. {{ character.id }}</span>
+          <span class="card-orb" aria-hidden="true"></span>
+          <img [src]="character.image" [alt]="character.name" loading="lazy" (error)="omitCharacterWithoutImage(character)" />
+          <span class="card-name">{{ character.name }}</span>
+          <span class="record-tags">
+            <span class="badge">{{ character.game }}</span>
+          </span>
+          <span class="card-cta">Abrir expediente <span aria-hidden="true">↗</span></span>
+        </button>
+      }
+    </section>
+  }
+
+  <footer class="footer">
+    <span class="footer-dot"></span>
+    RESIDENT EVIL WIKI <span aria-hidden="true">/</span> UMBRELLA ARCHIVES
+  </footer>
+
+  @if (selectedCharacter(); as character) {
+    <div class="modal-backdrop" (click)="closeModal()" (keydown.escape)="closeModal()">
+      <section
+        class="modal-content"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="'Expediente de ' + character.name"
+        (click)="$event.stopPropagation()"
+      >
+        <button class="close-btn" type="button" aria-label="Cerrar expediente" (click)="closeModal()">×</button>
+        <div class="modal-header">
+          <span class="modal-number">EXP. {{ character.id }}</span>
+          <img [src]="character.image" [alt]="character.name" (error)="omitCharacterWithoutImage(character)" />
+          <h2>{{ character.name }}</h2>
+          <div class="record-tags modal-tags">
+            <span class="badge">{{ character.game }}</span>
+          </div>
+        </div>
+        <div class="modal-body">
+          <div class="file-info">
+            <span>Procedencia del registro</span>
+            <strong>{{ character.game }}</strong>
+          </div>
+          <a class="source-link" [href]="character.wikiUrl" target="_blank" rel="noopener noreferrer">
+            Consultar expediente completo <span aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </section>
+    </div>
+  }
+</main>
+
+
